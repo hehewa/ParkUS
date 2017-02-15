@@ -1,0 +1,21 @@
+{
+  "name": "parkus",
+  "homepage": "https://github.com/FelixMartel/ParkUS",
+  "authors": [
+    "Équipe ParkUS"
+  ],
+  "description": "Application diffuse de gestion d'un parking",
+  "main": "",
+  "keywords": [
+    "parking",
+    "embarqué",
+    "s5",
+    "UdeS"
+  ],
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "react": "^15.4.2",
+    "bootstrap": "^3.3.7"
+  }
+}
