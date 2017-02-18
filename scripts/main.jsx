@@ -1,65 +1,45 @@
-function Square(props) {
-  return (
-    <button className="square" onClick={() => props.onClick()}>
-      {props.value}
-    </button>
-  );
-}
+// TODO utiliser WebPack pour supporter la transpilation import -> require en attendant es2015
+// pour éviter d'avoir à inclure chaque lib dans le template html
 
-class Board extends React.Component {
+// hack pour que le nom des classes soit plus court
+// sera solutionné par l'utilisation de la syntaxe import X from Y
+var Map = ReactLeaflet.Map;
+var Popup = ReactLeaflet.Popup;
+var Marker = ReactLeaflet.Marker;
+var TileLayer = ReactLeaflet.TileLayer;
+
+class ParkingMap extends React.Component {
   constructor() {
     super();
     this.state = {
-      squares: Array(9).fill(null),
-      xIsNext: true
+      mapCenter: [51.505, -0.09],
+      destination: [51.505, -0.09],
+      markers: [[51.505, -0.09]]
     };
   }
-  renderSquare(i) {
-    return <Square value={this.state.squares[i]} onClick={() => this.handleClick(i)}/>;
-  }
-  handleClick(i) {
-    const squares = this.state.squares.slice();
-    squares[i] = this.state.xIsNext? 'X':'O';
-    this.setState({
-      squares: squares,
-      xIsNext: !this.state.xIsNext
-    });
+  renderMarkers() {
+        return Array(this.state.markers.length).fill(null).map((val, index) =>
+                            <Marker position={this.state.markers[index]} />)
   }
   render() {
-    const status = 'Next player: ' + (this.state.xIsNext? 'X':'O');
-    return (
-      <div>
-        <div className="status">{status}</div>
-        <div className="board-row">
-          {this.renderSquare(0)}
-          {this.renderSquare(1)}
-          {this.renderSquare(2)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(3)}
-          {this.renderSquare(4)}
-          {this.renderSquare(5)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(6)}
-          {this.renderSquare(7)}
-          {this.renderSquare(8)}
-        </div>
-      </div>
+    return(
+      <Map center={this.state.mapCenter} zoom={18} style={{width: '600px', height: '400px'}}>
+        <TileLayer
+          url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+        />
+        {this.renderMarkers()}
+      </Map>
     );
   }
 }
 
-class Game extends React.Component {
+class App extends React.Component {
   render() {
     return (
-      <div className="game">
-        <div className="game-board">
-          <Board />
-        </div>
-        <div className="game-info">
-          <div>{/* status */}</div>
-          <ol>{/* TODO */}</ol>
+      <div className="app">
+        <div className="map">
+          <ParkingMap />
         </div>
       </div>
     );
@@ -69,27 +49,6 @@ class Game extends React.Component {
 // ========================================
 
 ReactDOM.render(
-  <Game />,
+  <App />,
   document.getElementById('main')
 );
-
-function calculateWinner(squares) {
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
-    }
-  }
-  return null;
-}
-
