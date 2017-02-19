@@ -8,18 +8,24 @@ var Popup = ReactLeaflet.Popup;
 var Marker = ReactLeaflet.Marker;
 var TileLayer = ReactLeaflet.TileLayer;
 
+var socket = io.connect('ws://' + document.domain + ':' + location.port);
+
 class ParkingMap extends React.Component {
   constructor() {
     super();
+    socket.on('full sync', this.onSync.bind(this));
     this.state = {
       mapCenter: [51.505, -0.09],
       destination: [51.505, -0.09],
-      markers: [[51.505, -0.09]]
+      markers: []
     };
   }
+  onSync(data) {
+    this.setState({markers: data.parkings}); 
+  }
   renderMarkers() {
-        return Array(this.state.markers.length).fill(null).map((val, index) =>
-                            <Marker position={this.state.markers[index]} />)
+        return this.state.markers.map((val, index) =>
+          val.available? <Marker key={val.pos} position={val.pos} /> : null)
   }
   render() {
     return(
