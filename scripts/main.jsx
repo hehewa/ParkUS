@@ -1,12 +1,10 @@
-// TODO utiliser WebPack pour supporter la transpilation import -> require en attendant es2015
-// pour éviter d'avoir à inclure chaque lib dans le template html
+import React from 'react'
+import ReactDOM from 'react-dom'
+import {Map, Popup, Marker, TileLayer} from 'react-leaflet'
+import io from 'socket.io-client'
+import L from 'Bower/leaflet/leaflet'
 
-// hack pour que le nom des classes soit plus court
-// sera solutionné par l'utilisation de la syntaxe import X from Y
-var Map = ReactLeaflet.Map;
-var Popup = ReactLeaflet.Popup;
-var Marker = ReactLeaflet.Marker;
-var TileLayer = ReactLeaflet.TileLayer;
+L.Icon.Default.imagePath = '/static/bower_components/leaflet/images';
 
 var socket = io.connect('ws://' + document.domain + ':' + location.port);
 

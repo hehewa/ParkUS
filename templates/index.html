@@ -17,14 +17,6 @@
     <div class="container">
       <div id="main"></div>
     </div>
-    <!-- scripts -->
-    <script src="{{ url_for('static', filename='bower_components/react/react.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='bower_components/react/react-dom.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='bower_components/leaflet/leaflet.js') }}"></script>
-    {# TODO Fix pour que ca devienne une dépendance locale #}
-    <script src="https://unpkg.com/react-leaflet/dist/react-leaflet.min.js"></script>
-    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-    <!--<script src="{{ url_for('static', filename='bower_components/react-leaflet/react-dom.min.js') }}"></script>-->
-    <script src="{{ url_for('static', filename='scripts/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='scripts/bundle.js') }}"></script>
   </body>
 </html>
