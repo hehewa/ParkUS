@@ -1,6 +1,7 @@
 import AppView from '../views/AppView.jsx'
 import {Container} from 'flux/utils'
 import MapStore from '../data/MapStore'
+import MapActions from '../data/MapActions'
 
 function getStores() {
   return [
@@ -11,6 +12,7 @@ function getStores() {
 function getState() {
   return {
     parkingSpots: MapStore.getState(),
+    onParkingSpotUpdate: MapActions.onParkingSpotUpdate
   };
 }
 

@@ -1,5 +1,6 @@
 import MapActionTypes from './MapActionTypes'
 import MapDispatcher from './MapDispatcher'
+import Socket from '../SocketIO'
 
 const Actions = {
   fullSync(keyValuePairs) {
@@ -7,6 +8,15 @@ const Actions = {
       type: MapActionTypes.FULL_SYNC,
       keyValuePairs,
     });
+  },
+  updateParkingSpots(keyValuePairs) {
+    MapDispatcher.dispatch({
+      type: MapActionTypes.UPDATE_PARKING_SPOTS,
+      keyValuePairs,
+    });
+  },
+  onParkingSpotUpdate(position, available) {
+    Socket.emit('FAKE_UPDATE', {position: position, available: available, reserved: false});
   }
 };
 
