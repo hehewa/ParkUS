@@ -3,7 +3,7 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO, send, emit
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../static', template_folder='../templates')
 socketio = SocketIO(app)
 
 parkings = [

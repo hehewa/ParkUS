@@ -4,7 +4,7 @@
   "description": "Application diffuse de gestion d'un parking",
   "main": "index.js",
   "scripts": {
-    "start": "./app.py",
+    "start": "./server/app.py",
     "build": "webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
