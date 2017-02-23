@@ -14,10 +14,9 @@ class ParkingMap extends React.Component {
   }
   render() {
     return(
-      <Map center={[51.505, -0.09]} zoom={18} style={{width: '600px', height: '400px'}}>
+      <Map center={[51.505, -0.09]} zoom={18} className="parking-map" >
         <TileLayer
           url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
-          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         />
         {this.renderMarkers()}
       </Map>
