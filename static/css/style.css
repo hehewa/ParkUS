@@ -14,8 +14,12 @@
 .navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
   color: #d1ffed;
 }
-.navbar-default .navbar-nav .active > a, .navbar-default .navbar-nav .active > a:hover, .navbar-default .navbar-nav .active > a:focus {
+.navbar-default .navbar-nav .active > a:hover, .navbar-default .navbar-nav .active > a:focus {
   color: #d1ffed;
+  background-color: #27ae60;
+}
+.navbar-default .navbar-nav .active > a {
+  color: white;
   background-color: #27ae60;
 }
 .navbar-default .navbar-nav .open > a, .navbar-default .navbar-nav .open > a:hover, .navbar-default .navbar-nav .open > a:focus {
@@ -52,6 +56,29 @@
     color: #d1ffed;
     background-color: #27ae60;
   }
+}
+
+.btn-success {
+  background-color: #27ae60;
+}
+
+.btn-success:hover, .btn-success:focus {
+  color: #d1ffed;
+  background-color: #27ae60;
+}
+
+.leaflet-popup-content-wrapper {
+  background-color: green;
+}
+
+.leaflet-popup-content-wrapper .leaflet-popup-content {
+}
+
+.leaflet-popup-tip {
+  background-color: green;
+}
+
+.leaflet-popup-tip-container {
 }
 
 body {

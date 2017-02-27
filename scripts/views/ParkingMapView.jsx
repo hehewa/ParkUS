@@ -10,7 +10,11 @@ class ParkingMap extends React.Component {
   }
   renderMarkers() {
         return [...this.props.parkingSpots.values()].map((parkingSpot) =>
-          parkingSpot.available? <Marker key={parkingSpot.position} position={parkingSpot.position} /> : null);
+          parkingSpot.available? (<Marker key={parkingSpot.position} position={parkingSpot.position}>
+                                    <Popup>
+                                      <button type="button" className="btn btn-success">Confirmer la <br/>réservation</button>
+                                    </Popup>
+                                  </Marker>) : null);
   }
   render() {
     return(
