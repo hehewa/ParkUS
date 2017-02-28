@@ -15,7 +15,6 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "bootstrap": "^3.3.7",
-    "leaflet": "leaflet-dist#^0.7.2"
+    "bootstrap": "^3.3.7"
   }
 }

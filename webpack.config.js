@@ -13,15 +13,26 @@ module.exports = {
         use: [
           {loader: 'babel-loader'}
         ]
+      },
+      {
+        test: /\.css$/,
+        use: [
+          {loader: 'style-loader'},
+          {loader: 'css-loader'}
+        ]
+      },
+      {
+        test: /\.png$/,
+        use: [
+          {loader: 'file-loader?name=[name].[ext]&outputPath=../img/'}
+        ]
       }
     ]
   },
   resolve: {
     alias: {
       Bower: path.resolve(__dirname, 'static/bower_components'),
-      // sans les lignes suivantes, les sous dépendances bower des libs npm
-      // ne sont pas trouvées e.g. leaflet-react cherche leaflet :/
-      leaflet: path.resolve(__dirname, 'static/bower_components/leaflet/leaflet')
+      Css: path.resolve(__dirname, 'static/css')
     }
   }
 };

@@ -1,8 +1,14 @@
 import React from 'react'
-import {Map, Popup, Marker, TileLayer} from 'react-leaflet'
-import L from 'Bower/leaflet/leaflet'
+import {Map, Popup, Marker, ImageOverlay} from 'react-leaflet'
+import 'leaflet/dist/leaflet.css'
+import 'Css/leaflet-style.css'
+import 'leaflet/dist/images/marker-icon.png'
+import 'leaflet/dist/images/marker-shadow.png'
+import L from 'leaflet'
 
-L.Icon.Default.imagePath = '/static/bower_components/leaflet/images';
+L.Icon.Default.imagePath = '/static/img/';
+
+var b = [[51.5045, -0.089], [51.5055, -0.091]]
 
 class ParkingMap extends React.Component {
   constructor() {
@@ -18,9 +24,10 @@ class ParkingMap extends React.Component {
   }
   render() {
     return(
-      <Map center={[51.505, -0.09]} zoom={18} className="parking-map" >
-        <TileLayer
-          url='http://{s}.tile.osm.org/{z}/{x}/{y}.png'
+      <Map center={[51.505, -0.09]} zoom={18} className="parking-map" maxBounds={b}>
+        <ImageOverlay
+          url='/static/img/parking-map-test.png'
+          bounds={b}
         />
         {this.renderMarkers()}
       </Map>

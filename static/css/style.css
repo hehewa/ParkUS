@@ -67,20 +67,6 @@
   background-color: #27ae60;
 }
 
-.leaflet-popup-content-wrapper {
-  background-color: green;
-}
-
-.leaflet-popup-content-wrapper .leaflet-popup-content {
-}
-
-.leaflet-popup-tip {
-  background-color: green;
-}
-
-.leaflet-popup-tip-container {
-}
-
 body {
   background-color: green;
 }

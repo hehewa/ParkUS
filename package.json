@@ -24,18 +24,20 @@
     "url": "https://github.com/FelixMartel/ParkUS/issues"
   },
   "homepage": "https://github.com/FelixMartel/ParkUS#readme",
-  "devDependencies": {
+  "dependencies": {
     "babel-core": "^6.23.1",
     "babel-loader": "^6.3.2",
     "babel-preset-react": "^6.23.0",
     "bower": "^1.8.0",
-    "webpack": "^2.2.1"
-  },
-  "dependencies": {
+    "webpack": "^2.2.1",
+    "css-loader": "^0.26.2",
+    "file-loader": "^0.10.1",
     "flux": "^3.1.2",
+    "leaflet": "^1.0.3",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-leaflet": "^1.1.0",
-    "socket.io-client": "^1.7.3"
+    "socket.io-client": "^1.7.3",
+    "style-loader": "^0.13.2"
   }
 }
