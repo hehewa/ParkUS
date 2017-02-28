@@ -16,7 +16,7 @@ class MapStore extends ReduceStore {
       case MapActionTypes.FULL_SYNC:
         return new Map(action.keyValuePairs);
 
-     case MapActionTypes.UPDATE_PARKING_SPOTS:
+      case MapActionTypes.UPDATE_PARKING_SPOTS:
         return new Map([...state, ...action.keyValuePairs]);
 
       default:

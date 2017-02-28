@@ -12,7 +12,8 @@ function getStores() {
 function getState() {
   return {
     parkingSpots: MapStore.getState(),
-    onParkingSpotUpdate: MapActions.onParkingSpotUpdate
+    onParkingSpotUpdate: MapActions.onParkingSpotUpdate,
+    onReservation: MapActions.onReservation
   };
 }
 
