@@ -24,17 +24,18 @@
           <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
               <li><a href="./">Vue en direct</a></li>
-              <li class="active"><a href="./stats">Statistiques</a></li>
-              <li><a href="./account">Votre abonnement</a></li>
+              {% if user.admin %}
+                <li><a href="./stats">Statistiques</a></li> 
+              {% endif %}
+              <li class="active"><a href="./account">Votre abonnement</a></li>
             </ul>
           </div>
       </nav>
     </div>
     <div class="container-fluid">
-      <div id="StatsApp" class="main"></div>
+      {{ user.id }}
     </div>
     <script src="{{ url_for('static', filename='bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='bower_components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='scripts/bundle.js') }}"></script>
   </body>
 </html>

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, abort
 from flask_socketio import SocketIO, emit
 from flask_login import LoginManager, login_required, login_user, current_user
 from user import User
@@ -28,6 +28,15 @@ parkings = {
 def load_user(user_id):
     return User(user_id)
 
+def admin_only(route):
+    @login_required
+    def wrapped():
+        if current_user.admin:
+            return route()
+        else:
+            abort(403)
+    return wrapped
+
 @socketio.on('connect')
 def on_connect():
     # il est attendu que le client resynchronise
@@ -52,21 +61,33 @@ def on_fake_update(parkingSpot):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        print("login post")
-        id = request.form['id']
-        login_user(User(id))
+        user_id = request.form['id']
+        login_user(User(user_id))
         return redirect(url_for('index'))
     return render_template('login.html')
 
 @app.route('/')
 @login_required
 def index():
-    return render_template('index.html')
+    return render_template('index.html', user=current_user)
 
 @app.route('/stats')
-@login_required
+@admin_only
 def stats():
     return render_template('stats.html')
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        user_id = request.form['email']
+        login_user(User(1))
+        return redirect(url_for('index'))
+    return render_template('signup.html')
+
+@app.route('/account')
+@login_required
+def account():
+    return render_template('account.html', user=current_user)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
