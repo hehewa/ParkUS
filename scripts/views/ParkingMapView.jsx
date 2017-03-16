@@ -22,7 +22,7 @@ class ParkingMap extends React.Component {
   renderPopup(parkingSpot) {
     return (<Popup>
               <button
-                type="button" className="btn btn-success"
+                type="button" className="btn btn-success btn-popup"
                 onClick={() => this.props.onReservation(parkingSpot.position, !parkingSpot.reserved)}>
                 {
                   parkingSpot.reserved?

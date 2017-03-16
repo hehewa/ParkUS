@@ -71,6 +71,10 @@ body {
   background-color: green;
 }
 
+.btn-popup {
+  width: 180px;
+}
+
 .parking-map {
   height: 400px;
 }
