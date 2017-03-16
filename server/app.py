@@ -63,5 +63,10 @@ def login():
 def index():
     return render_template('index.html')
 
+@app.route('/stats')
+@login_required
+def stats():
+    return render_template('stats.html')
+
 if __name__ == '__main__':
     socketio.run(app, debug=True)

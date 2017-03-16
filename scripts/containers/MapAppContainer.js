@@ -1,4 +1,4 @@
-import AppView from '../views/AppView.jsx'
+import AppView from '../views/MapAppView.jsx'
 import {Container} from 'flux/utils'
 import MapStore from '../data/MapStore'
 import MapActions from '../data/MapActions'
