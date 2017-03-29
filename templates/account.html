@@ -33,7 +33,9 @@
       </nav>
     </div>
     <div class="container-fluid">
-      {{ user.id }}
+      {% for key, value in user.info.items() %}
+        {{key}} = {{value}} <br/>
+      {% endfor %}
     </div>
     <script src="{{ url_for('static', filename='bower_components/jquery/dist/jquery.min.js') }}"></script>
     <script src="{{ url_for('static', filename='bower_components/bootstrap/dist/js/bootstrap.min.js') }}"></script>

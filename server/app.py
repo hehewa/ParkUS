@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-from flask import Flask, render_template, request, redirect, url_for, abort
+from flask import Flask, render_template, request, redirect, url_for, g
 from flask_socketio import SocketIO, emit
 from flask_login import LoginManager, login_required, login_user, current_user
 from user import User
+from utils import admin_only, authenticated_only
 from config import SECRET_KEY
 
 app = Flask(__name__, static_folder='../static', template_folder='../templates')
@@ -28,22 +29,21 @@ parkings = {
 def load_user(user_id):
     return User(user_id)
 
-def admin_only(route):
-    @login_required
-    def wrapped():
-        if current_user.admin:
-            return route()
-        else:
-            abort(403)
-    return wrapped
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
 
 @socketio.on('connect')
+@authenticated_only
 def on_connect():
     # il est attendu que le client resynchronise
     # l'entierté des places
     emit('FULL_SYNC', list(parkings.items()))
 
 @socketio.on('RESERVATION')
+@authenticated_only
 def on_reservation(parkingSpot):
     key = ','.join(map(str,parkingSpot['position']))
     if parkings[key]['reserved'] != parkingSpot['reserved']:
@@ -51,6 +51,7 @@ def on_reservation(parkingSpot):
         emit('UPDATE', [[key, parkings[key]]], broadcast=True)
 
 @socketio.on('FAKE_UPDATE')
+@authenticated_only
 def on_fake_update(parkingSpot):
     # test update provenant du UI
     # a remplacer par message du microcontrôleur coordo
