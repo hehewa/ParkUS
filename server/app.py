@@ -1,94 +1,81 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
 
-from flask import Flask, render_template, request, redirect, url_for, g
-from flask_socketio import SocketIO, emit
-from flask_login import LoginManager, login_required, login_user, current_user
-from user import User
-from utils import admin_only, authenticated_only
+from aiohttp import web
+import asyncio
 from config import SECRET_KEY
+import aiohttp_jinja2
+import jinja2
+from aiohttp_session import get_session
+import aiohttp_session
+from aiohttp_session.cookie_storage import EncryptedCookieStorage
+from parkinglot import parkings
+from user import User
+from utils import authenticated_only, admin_only, public_page, pathfromroot
+import db
+from wshandler import wshandler
+from embeddedhandler import embeddedhandler
 
-app = Flask(__name__, static_folder='../static', template_folder='../templates')
-app.secret_key = SECRET_KEY
+async def user_middleware(app, handler):
+    async def middleware_handler(request):
+        session = await get_session(request)
+        user_id = session['user_id'] if 'user_id' in session else None
+        request.app['current_user'] = User(user_id)
+        return await handler(request)
+    return middleware_handler
 
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
+def jinja_view(name, wrapper=authenticated_only):
+    async def view(request):
+        return aiohttp_jinja2.render_template(name + '.html', request, {'user': request.app['current_user']})
+    return wrapper(view)
 
-socketio = SocketIO(app)
+async def login_handler(request):
+    session = await get_session(request)
+    post = await request.post()
+    if 'id' in post:
+        session['user_id'] = int(post['id'])
+        raise web.HTTPFound('/')
+    return aiohttp_jinja2.render_template('login.html', request, {})
 
-parkings = {
-    '51.50512,-0.0901': {'position':[51.50512, -0.0901], 'reserved':False, 'available':True},
-    '51.50503,-0.0901': {'position':[51.50503, -0.0901], 'reserved':False, 'available':True},
-    '51.50494,-0.0901': {'position':[51.50494, -0.0901], 'reserved':False, 'available':False},
-    '51.50485,-0.0901': {'position':[51.50485, -0.0901], 'reserved':False, 'available':False},
-    '51.50476,-0.0901': {'position':[51.50476, -0.0901], 'reserved':False, 'available':True},
-    '51.50467,-0.0901': {'position':[51.50467, -0.0901], 'reserved':False, 'available':False}
-}
+async def logout_handler(request):
+    session = await get_session(request)
+    if 'user_id' in session:
+        del session['user_id']
+    raise web.HTTPFound('/')
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User(user_id)
+async def signup_handler(request):
+    session = await get_session(request)
+    post = await request.post()
+    if 'email' in post:
+        c = request.app['db'].execute('insert into User ("E-Mail") values (?)', [post['email']])
+        request.app['db'].commit()
+        session['user_id'] = int(c.lastrowid)
+        raise web.HTTPFound('/')
+    raise web.HTTPFound('/signup')
 
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
+ws_to_mbed = asyncio.Queue()
+mbed_to_ws = asyncio.Queue()
 
-@socketio.on('connect')
-@authenticated_only
-def on_connect():
-    # il est attendu que le client resynchronise
-    # l'entierté des places
-    emit('FULL_SYNC', list(parkings.items()))
+app = web.Application()
+aiohttp_session.setup(app, EncryptedCookieStorage(SECRET_KEY))
+app.middlewares.append(user_middleware)
+db.setup(app)
+aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(pathfromroot('templates')))
 
-@socketio.on('RESERVATION')
-@authenticated_only
-def on_reservation(parkingSpot):
-    key = ','.join(map(str,parkingSpot['position']))
-    if parkings[key]['reserved'] != parkingSpot['reserved']:
-        parkings[key]['reserved'] = parkingSpot['reserved']
-        emit('UPDATE', [[key, parkings[key]]], broadcast=True)
+app.router.add_get('/wsmap', wshandler)
+app.router.add_get('/', jinja_view("index"))
+app.router.add_get('/login', jinja_view("login", wrapper=public_page))
+app.router.add_post('/login', login_handler)
+app.router.add_get('/signup', jinja_view("signup", wrapper=public_page))
+app.router.add_post('/signup', signup_handler)
+app.router.add_get('/stats', jinja_view("stats", wrapper=admin_only))
+app.router.add_get('/account', jinja_view("account"))
+app.router.add_get('/logout', logout_handler)
+app.router.add_static('/static', pathfromroot('static'))
+app['websockets'] = []
+app['to_mbed'] = ws_to_mbed
+app['from_mbed'] = mbed_to_ws
 
-@socketio.on('FAKE_UPDATE')
-@authenticated_only
-def on_fake_update(parkingSpot):
-    # test update provenant du UI
-    # a remplacer par message du microcontrôleur coordo
-    key = ','.join(map(str,parkingSpot['position']))
-    parkings[key]['available'] = parkingSpot['available']
-    emit('UPDATE', [[key, parkings[key]]], broadcast=True)
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        user_id = request.form['id']
-        login_user(User(user_id))
-        return redirect(url_for('index'))
-    return render_template('login.html')
-
-@app.route('/')
-@login_required
-def index():
-    return render_template('index.html', user=current_user)
-
-@app.route('/stats')
-@admin_only
-def stats():
-    return render_template('stats.html')
-
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        user_id = request.form['email']
-        login_user(User(1))
-        return redirect(url_for('index'))
-    return render_template('signup.html')
-
-@app.route('/account')
-@login_required
-def account():
-    return render_template('account.html', user=current_user)
-
-if __name__ == '__main__':
-    socketio.run(app, debug=True)
+loop = asyncio.get_event_loop()
+f = asyncio.start_server(embeddedhandler(ws_to_mbed, mbed_to_ws), '0.0.0.0', 8000, loop=loop)
+server = loop.run_until_complete(f)
+web.run_app(app, loop=loop)

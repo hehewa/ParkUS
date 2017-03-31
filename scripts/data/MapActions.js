@@ -1,6 +1,6 @@
 import MapActionTypes from './MapActionTypes'
 import MapDispatcher from './MapDispatcher'
-import Socket from '../SocketIO'
+import socket from '../websocket'
 
 const Actions = {
   fullSync(keyValuePairs) {
@@ -16,7 +16,7 @@ const Actions = {
     });
   },
   onReservation(position, reserved) {
-    Socket.emit('RESERVATION', {position: position, reserved: reserved});
+    socket.send(JSON.stringify({type:'RESERVATION', args:{position: position, reserved: reserved}}));
   },
   onParkingSpotUpdate(position, available) {
     Socket.emit('FAKE_UPDATE', {position: position, available: available, reserved: false});

@@ -1,38 +1,25 @@
-from flask import g, abort
-from flask_login import current_user, login_required
-from flask_socketio import disconnect
-from config import DB_PATH
-import sqlite3
+from config import PROJECT_ROOT
+import aiohttp
+import os
 
-def get_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        def make_dicts(cursor, row):
-             return dict((cursor.description[idx][0], value)
-                        for idx, value in enumerate(row))
-        db = g._database = sqlite3.connect(DB_PATH)
-        db.row_factory = make_dicts
-    return db
-
-def query_db(query, args=(), one=False):
-    cur = get_db().execute(query, args)
-    rv = cur.fetchall()
-    cur.close()
-    return (rv[0] if rv else None) if one else rv
+public_page = lambda x: x
 
 def authenticated_only(f):
-    def wrapped(*args, **kwargs):
-        if not current_user.is_authenticated:
-            disconnect()
+    async def wrapped(request):
+        if not request.app['current_user'].authenticated:
+            raise aiohttp.web.HTTPFound('/login')
         else:
-            return f(*args, **kwargs)
+            return await f(request)
     return wrapped
 
-def admin_only(route):
-    @login_required
-    def wrapped():
-        if current_user.admin:
-            return route()
+def admin_only(f):
+    @authenticated_only
+    async def wrapped(request):
+        if not request.app['current_user'].admin:
+            raise aiohttp.web.HTTPForbidden()
         else:
-            abort(403)
+            return await f(request)
     return wrapped
+
+def pathfromroot(path):
+    return os.path.join(PROJECT_ROOT, path)
