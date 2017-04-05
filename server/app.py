@@ -15,6 +15,7 @@ import db
 from wshandler import wshandler
 from embeddedhandler import embeddedhandler
 
+
 async def user_middleware(app, handler):
     async def middleware_handler(request):
         session = await get_session(request)
@@ -23,10 +24,14 @@ async def user_middleware(app, handler):
         return await handler(request)
     return middleware_handler
 
+
 def jinja_view(name, wrapper=authenticated_only):
     async def view(request):
-        return aiohttp_jinja2.render_template(name + '.html', request, {'user': request.app['current_user']})
+        return aiohttp_jinja2.render_template(
+            name + '.html', request, {'user': request.app['current_user']}
+        )
     return wrapper(view)
+
 
 async def login_handler(request):
     session = await get_session(request)
@@ -36,17 +41,21 @@ async def login_handler(request):
         raise web.HTTPFound('/')
     return aiohttp_jinja2.render_template('login.html', request, {})
 
+
 async def logout_handler(request):
     session = await get_session(request)
     if 'user_id' in session:
         del session['user_id']
     raise web.HTTPFound('/')
 
+
 async def signup_handler(request):
     session = await get_session(request)
     post = await request.post()
     if 'email' in post:
-        c = request.app['db'].execute('insert into User ("E-Mail") values (?)', [post['email']])
+        c = request.app['db'].execute(
+            'insert into User ("E-Mail") values (?)', [post['email']]
+        )
         request.app['db'].commit()
         session['user_id'] = int(c.lastrowid)
         raise web.HTTPFound('/')
@@ -59,7 +68,9 @@ app = web.Application()
 aiohttp_session.setup(app, EncryptedCookieStorage(SECRET_KEY))
 app.middlewares.append(user_middleware)
 db.setup(app)
-aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(pathfromroot('templates')))
+aiohttp_jinja2.setup(
+    app, loader=jinja2.FileSystemLoader(pathfromroot('templates'))
+)
 
 app.router.add_get('/wsmap', wshandler)
 app.router.add_get('/', jinja_view("index"))
@@ -76,6 +87,8 @@ app['to_mbed'] = ws_to_mbed
 app['from_mbed'] = mbed_to_ws
 
 loop = asyncio.get_event_loop()
-f = asyncio.start_server(embeddedhandler(ws_to_mbed, mbed_to_ws), '0.0.0.0', 8000, loop=loop)
+f = asyncio.start_server(
+    embeddedhandler(ws_to_mbed, mbed_to_ws), '0.0.0.0', 8000, loop=loop
+)
 server = loop.run_until_complete(f)
 web.run_app(app, loop=loop)
