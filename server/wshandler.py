@@ -55,6 +55,12 @@ async def wshandler(request):
                                 }
                             )
                         )
+                    module_id = key[:2].encode()
+                    keys = [ module_id + spot_id for spot_id in map(str,range(8)) ]
+                    #keys = filter(lambda x: x in parkings, keys)
+                    keys = [ key for key in keys if key in parkings else None ]
+                    mask = bytes([int(''.join([ '1' for key in keys if key is not None and parkings[key]['reserved'] else '0' ]), 2)])
+                    await request.app['to_mbed'].put(b'\x02' + module_id + b'\x01\x01' + mask)
         else:
             break
 

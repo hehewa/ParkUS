@@ -27,7 +27,7 @@ def embeddedhandler(from_ws, to_ws):
                     'type': 'UPDATE',
                     'args': []
                 }
-        for i, byte in enumerate(bin(ord(parkingmask)).strip('0b')):
+        for i, byte in enumerate(bin(ord(parkingmask))[2:].zfill(8)):
             key = module_id.hex() + i
             available = byte == '1'
             if parkings[key]['available'] != available:
