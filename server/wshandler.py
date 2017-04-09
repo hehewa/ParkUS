@@ -4,6 +4,45 @@ import json
 from parkinglot import parkings
 
 
+async def start_background_tasks(app):
+    app['wsbroadcast'] = app.loop.create_task(wsbroadcast(app))
+
+
+async def cleanup_background_tasks(app):
+    app['wsbroadcast'].cancel()
+
+
+def setup(app, to_mbed, from_mbed):
+    app['websockets'] = []
+    app['to_mbed'] = to_mbed
+    app['from_mbed'] = from_mbed
+    app.on_startup.append(start_background_tasks)
+    app.on_cleanup.append(cleanup_background_tasks)
+
+
+async def wsbroadcast(app):
+    while True:
+        payload = await app['from_mbed'].get()
+        print(payload)
+        event = json.loads(payload)
+        print(event)
+        if True:
+            print(len(app['websockets']))
+            for ws in app['websockets']:
+                ws.send_str(
+                    json.dumps(
+                        {
+                            'type': 'GATE',
+                            'args': {
+                                'success': event['gate'],
+                                'id': event['id']
+                            }
+                        }
+                    )
+                )
+        app['from_mbed'].task_done()
+
+
 async def wshandler(request):
     ws = web.WebSocketResponse()
     await ws.prepare(request)
@@ -31,9 +70,7 @@ async def wshandler(request):
                                 }
                             )
                         )
-        elif msg.type == web.MsgType.binary:
-            await ws.send_bytes(msg.data)
-        elif msg.type == web.MsgType.close:
+        else:
             break
 
     request.app['websockets'].remove(ws)

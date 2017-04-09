@@ -2,26 +2,44 @@ import asyncio
 from db import get_db
 from struct import unpack
 
+
+async def cleanup_background_tasks(app):
+    app['mbed'].close()
+    await app['mbed'].wait_closed()
+
+
+def setup(app, from_ws, to_ws, loop):
+    app['mbed'] = loop.run_until_complete(asyncio.start_server(
+        embeddedhandler(from_ws, to_ws), '0.0.0.0', 8000, loop=loop))
+    app.on_cleanup.append(cleanup_background_tasks)
+
+
 def embeddedhandler(from_ws, to_ws):
     async def connected(module_id):
-        pass
+        print(f'connected {module_id.hex()}')
     async def disconnected(module_id):
-        pass
+        print(f'disconnected {module_id.hex()}')
     async def parkinglotstatus(module_id, parkingmask):
-        pass
+        print(f'status {module_id.hex()} {parkingmask.hex()}')
     async def gaterequest(module_id, card_id):
+        user_id = unpack('>i', card_id)[0]
         c = get_db().execute(
-                'select * from User where ID_User = ?', [unpack('>i', card_id)[0]]
+                'select * from User where ID_User = ?', [user_id]
             )
         row = c.fetchone()
         if row is not None:
-            await from_ws.put(b'\x03' + module_id)
+            await asyncio.wait([
+                from_ws.put(b'\x02\x07\x03\x01\x01'),
+                to_ws.put(f'{{ "gate":true, "id":{user_id} }}')
+            ])
+        else:
+            to_ws.put(f'{{ "gate":false, "id":{user_id} }}')
 
     router = {
         b'\x00': connected,
         b'\x01': disconnected,
         b'\x02\x00': parkinglotstatus,
-        b'\x02\x01': gaterequest
+        b'\x02\x02': gaterequest
     }
     async def handler(reader, writer):
         loop = asyncio.get_event_loop()
@@ -37,7 +55,7 @@ def embeddedhandler(from_ws, to_ws):
             while True:
                 frame_id = await reader.readexactly(1)
                 route = frame_id
-                module_id = await reader.readexactly(4)
+                module_id = await reader.readexactly(1)
                 args = [module_id]
                 if ord(frame_id) >= 2:
                     function_id = await reader.readexactly(1)

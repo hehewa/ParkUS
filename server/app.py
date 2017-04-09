@@ -12,8 +12,8 @@ from parkinglot import parkings
 from user import User
 from utils import authenticated_only, admin_only, public_page, pathfromroot
 import db
-from wshandler import wshandler
-from embeddedhandler import embeddedhandler
+import wshandler
+import embeddedhandler
 
 
 async def user_middleware(app, handler):
@@ -63,16 +63,19 @@ async def signup_handler(request):
 
 ws_to_mbed = asyncio.Queue()
 mbed_to_ws = asyncio.Queue()
-
 app = web.Application()
+loop = asyncio.get_event_loop()
+
 aiohttp_session.setup(app, EncryptedCookieStorage(SECRET_KEY))
 app.middlewares.append(user_middleware)
 db.setup(app)
 aiohttp_jinja2.setup(
     app, loader=jinja2.FileSystemLoader(pathfromroot('templates'))
 )
+wshandler.setup(app, ws_to_mbed, mbed_to_ws)
+embeddedhandler.setup(app, ws_to_mbed, mbed_to_ws, loop)
 
-app.router.add_get('/wsmap', wshandler)
+app.router.add_get('/wsmap', wshandler.wshandler)
 app.router.add_get('/', jinja_view("index"))
 app.router.add_get('/login', jinja_view("login", wrapper=public_page))
 app.router.add_post('/login', login_handler)
@@ -82,13 +85,5 @@ app.router.add_get('/stats', jinja_view("stats", wrapper=admin_only))
 app.router.add_get('/account', jinja_view("account"))
 app.router.add_get('/logout', logout_handler)
 app.router.add_static('/static', pathfromroot('static'))
-app['websockets'] = []
-app['to_mbed'] = ws_to_mbed
-app['from_mbed'] = mbed_to_ws
 
-loop = asyncio.get_event_loop()
-f = asyncio.start_server(
-    embeddedhandler(ws_to_mbed, mbed_to_ws), '0.0.0.0', 8000, loop=loop
-)
-server = loop.run_until_complete(f)
 web.run_app(app, loop=loop)

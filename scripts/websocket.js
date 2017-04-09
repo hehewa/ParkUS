@@ -10,15 +10,13 @@ socket.addEventListener('message', function (event) {
     MapActions.fullSync(parsed["args"]);
   } else if(parsed["type"] == "UPDATE") {
     MapActions.updateParkingSpots(parsed["args"]);
+  } else if(parsed["type"] == "GATE") {
+    if(parsed["args"]["success"]) {
+      console.log("success : " + parsed["args"]["id"])
+    } else {
+      console.log("fail : " + parsed["args"]["id"])
+    }
   }
 });
-
-/*Socket.on('FULL_SYNC', (keyValuePairs) => {
-  MapActions.fullSync(keyValuePairs)
-});
-
-Socket.on('UPDATE', (keyValuePairs) => {
-  MapActions.updateParkingSpots(keyValuePairs)
-});*/
 
 export default socket

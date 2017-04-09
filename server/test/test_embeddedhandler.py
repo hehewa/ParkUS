@@ -36,16 +36,16 @@ class MockedReader():
 class TestMbedHandler(unittest.TestCase):
 
     def test_gaterequest_success(self):
-        reader = MockedReader(b"\x02\xaa\xbb\xcc\xdd\x01\x04\x00\x00\x00\x7b")
+        reader = MockedReader(b'\x02\xaa\x02\x04\x00\x00\x00\x7b')
         writer = MockedWriter()
         asyncio.set_event_loop(asyncio.new_event_loop())
         loop = asyncio.get_event_loop()
         loop.run_until_complete(embeddedhandler(asyncio.Queue(), asyncio.Queue())(reader, writer))
         loop.close()
-        self.assertEqual(writer.result, b"\x03\xaa\xbb\xcc\xdd")
+        self.assertEqual(writer.result, b'\x02\x07\x03\x01\x01')
 
     def test_gaterequest_fail(self):
-        reader = MockedReader(b"\x02\xaa\xbb\xcc\xdd\x01\x04\xaa\xaa\xaa\x7b")
+        reader = MockedReader(b'\x02\xaa\x02\x04\xaa\xaa\xaa\x7b')
         writer = MockedWriter()
         asyncio.set_event_loop(asyncio.new_event_loop())
         loop = asyncio.get_event_loop()
