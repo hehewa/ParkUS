@@ -19,11 +19,11 @@ class ParkingMap extends React.Component {
   constructor() {
     super();
   }
-  renderPopup(parkingSpot) {
+  renderPopup(key, parkingSpot) {
     return (<Popup>
               <button
                 type="button" className="btn btn-success btn-popup"
-                onClick={() => this.props.onReservation(parkingSpot.position, !parkingSpot.reserved)}>
+                onClick={() => this.props.onReservation(key, !parkingSpot.reserved)}>
                 {
                   parkingSpot.reserved?
                     "Annuler la réservation" :
@@ -33,12 +33,12 @@ class ParkingMap extends React.Component {
             </Popup>);
   }
   renderMarkers() {
-    return [...this.props.parkingSpots.values()].map((parkingSpot) =>
-      parkingSpot.available? (<Marker
-                                key={parkingSpot.position}
-                                position={parkingSpot.position}
-                                icon={parkingSpot.reserved? reservedIcon : availableIcon}>
-                                {this.renderPopup(parkingSpot)}
+    return [...this.props.parkingSpots.entries()].map((entry) =>
+      entry[1].available? (<Marker
+                                key={entry[0]}
+                                position={entry[1].position}
+                                icon={entry[1].reserved? reservedIcon : availableIcon}>
+                                {this.renderPopup(...entry)}
                               </Marker>) : null);
   }
   render() {

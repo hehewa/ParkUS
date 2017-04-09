@@ -1,6 +1,8 @@
 import asyncio
 from db import get_db
 from struct import unpack
+import json
+from parkinglot import parkings
 
 
 async def cleanup_background_tasks(app):
@@ -21,19 +23,39 @@ def embeddedhandler(from_ws, to_ws):
         print(f'disconnected {module_id.hex()}')
     async def parkinglotstatus(module_id, parkingmask):
         print(f'status {module_id.hex()} {parkingmask.hex()}')
+        event = {
+                    'type': 'UPDATE',
+                    'args': []
+                }
+        for i, byte in enumerate(bin(ord(parkingmask)).strip('0b')):
+            key = module_id.hex() + i
+            available = byte == '1'
+            if parkings[key]['available'] != available:
+                event['args'].append([key, parkings[key]])
+                parkings[key]['available'] = available
+
+        if len(event['args']) > 0:
+            await to_ws.put(json.dumps(event))
+
     async def gaterequest(module_id, card_id):
+        print(f'gate {module_id.hex()} {card_id.hex()}')
         user_id = unpack('>i', card_id)[0]
         c = get_db().execute(
                 'select * from User where ID_User = ?', [user_id]
             )
         row = c.fetchone()
+        event = {
+                    'type': 'GATE',
+                    'args': {
+                        'success': user_id,
+                        'id': row is not None
+                    }
+                }
+        tasks = [to_ws.put(json.dumps(event))]
         if row is not None:
-            await asyncio.wait([
-                from_ws.put(b'\x02\x07\x03\x01\x01'),
-                to_ws.put(f'{{ "gate":true, "id":{user_id} }}')
-            ])
-        else:
-            await to_ws.put(f'{{ "gate":false, "id":{user_id} }}')
+            tasks.append(from_ws.put(b'\x02\x07\x03\x01\x01'))
+
+        await asyncio.wait(tasks)
 
     router = {
         b'\x00': connected,

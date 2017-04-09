@@ -6,7 +6,7 @@ function AppView(props) {
   return (
     <div>
       <ParkingMap {...props} />
-      <TestInput {...props} />
+      {/*<TestInput {...props} />*/}
     </div>
   );
 }

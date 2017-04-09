@@ -23,20 +23,8 @@ def setup(app, to_mbed, from_mbed):
 async def wsbroadcast(app):
     while True:
         payload = await app['from_mbed'].get()
-        event = json.loads(payload)
-        if 'gate' in event:
-            for ws in app['websockets']:
-                ws.send_str(
-                    json.dumps(
-                        {
-                            'type': 'GATE',
-                            'args': {
-                                'success': event['gate'],
-                                'id': event['id']
-                            }
-                        }
-                    )
-                )
+        for ws in app['websockets']:
+            ws.send_str(payload)
         app['from_mbed'].task_done()
 
 
@@ -54,8 +42,8 @@ async def wshandler(request):
                     {'type': 'FULL_SYNC', 'args': list(parkings.items())})
                 )
             elif event["type"] == "RESERVATION":
-                key = ','.join(map(str, event['args']['position']))
-                await request.app['to_mbed'].put("reservation " + key)
+                key = event['args']['key']
+                #await request.app['to_mbed'].put("reservation " + key)
                 if parkings[key]['reserved'] != event['args']['reserved']:
                     parkings[key]['reserved'] = event['args']['reserved']
                     for ws in request.app['websockets']:
