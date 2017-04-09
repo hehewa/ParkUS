@@ -23,11 +23,8 @@ def setup(app, to_mbed, from_mbed):
 async def wsbroadcast(app):
     while True:
         payload = await app['from_mbed'].get()
-        print(payload)
         event = json.loads(payload)
-        print(event)
-        if True:
-            print(len(app['websockets']))
+        if 'gate' in event:
             for ws in app['websockets']:
                 ws.send_str(
                     json.dumps(

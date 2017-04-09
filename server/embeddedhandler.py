@@ -33,7 +33,7 @@ def embeddedhandler(from_ws, to_ws):
                 to_ws.put(f'{{ "gate":true, "id":{user_id} }}')
             ])
         else:
-            to_ws.put(f'{{ "gate":false, "id":{user_id} }}')
+            await to_ws.put(f'{{ "gate":false, "id":{user_id} }}')
 
     router = {
         b'\x00': connected,

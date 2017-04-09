@@ -30,14 +30,18 @@
       </nav>
     </div>
     <div class="container-fluid">
-      <form action="/login" method="post">
+      <form action="/login" method="post" class="login-form">
         <div class="form-group">
-          <input type="password" class="form-control" name="id">
+          <input type="password" class="form-control login-id" name="id">
         </div>
         <button type="submit" class="btn btn-default">Submit</button>
       </form>
+      <div class="alert alert-danger login-error" style="display: none;">
+        <strong>Erreur!</strong> Carte non reconnue. <a href="/signup" class="alert-link">Abonnez-vous!</a>
+      </div>
     </div>
-    <script src="/static/static/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="/static/bower_components/jquery/dist/jquery.min.js"></script>
     <script src="/static/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="/static/scripts/bundle.js"></script>
   </body>
 </html>
