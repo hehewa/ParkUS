@@ -38,13 +38,12 @@ async def wshandler(request):
         if msg.type == web.MsgType.text:
             event = json.loads(msg.data)
             if event["type"] == "connection":
-                await ws.send_str(json.dumps(
+                ws.send_str(json.dumps(
                     {'type': 'FULL_SYNC', 'args': list(parkings.items())})
                 )
             elif event["type"] == "RESERVATION":
                 key = event['args']['key']
-                #await request.app['to_mbed'].put("reservation " + key)
-                if parkings[key]['reserved'] != event['args']['reserved']:
+                if not parkings[key]['reserved']:
                     parkings[key]['reserved'] = event['args']['reserved']
                     for ws in request.app['websockets']:
                         ws.send_str(
@@ -55,12 +54,28 @@ async def wshandler(request):
                                 }
                             )
                         )
-                    module_id = key[:2].encode()
-                    keys = [ module_id + spot_id for spot_id in map(str,range(8)) ]
-                    #keys = filter(lambda x: x in parkings, keys)
+                    def unreserve(key):
+                        parkings[key]['reserved'] = False
+                        for ws in request.app['websockets']:
+                            ws.send_str(
+                                json.dumps(
+                                    {
+                                        'type': 'UPDATE',
+                                        'args': [[key, parkings[key]]]
+                                    }
+                                )
+                            )
+                    request.app.loop.call_later(10, unreserve, key)
+
+                    module_id = key[:2]
+                    keys = [ module_id + spot_id for spot_id in map(str, range(7,-1,-1)) ]
                     keys = [ key if key in parkings else None for key in keys ]
-                    mask = bytes([int(''.join([ '1' if key is not None and parkings[key]['reserved'] else '0' for key in keys ]), 2)])
-                    await request.app['to_mbed'].put(b'\x02' + module_id + b'\x01\x01' + mask)
+                    mask = bytes([
+                        int(''.join([ '1' if key is not None and parkings[key]['reserved'] else '0' for key in keys ]), 2)
+                    ])
+                    await asyncio.wait([request.app['to_mbed'].put(b'\x02' + bytes.fromhex(module_id) + b'\x01\x01' + mask),
+                        request.app['to_mbed'].put(b'\x02\x07\x03\x01\x01')
+                    ])
         else:
             break
 

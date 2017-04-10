@@ -28,11 +28,13 @@ def embeddedhandler(from_ws, to_ws):
                     'args': []
                 }
         for i, byte in enumerate(bin(ord(parkingmask))[2:].zfill(8)):
-            key = module_id.hex() + i
-            available = byte == '1'
-            if parkings[key]['available'] != available:
-                event['args'].append([key, parkings[key]])
+            key = module_id.hex() + str(7-i)
+            available = byte == '0'
+            if key in parkings and parkings[key]['available'] != available:
+                if parkings[key]['available']:
+                    parkings[key]['reserved'] = False
                 parkings[key]['available'] = available
+                event['args'].append([key, parkings[key]])
 
         if len(event['args']) > 0:
             await to_ws.put(json.dumps(event))
@@ -47,13 +49,13 @@ def embeddedhandler(from_ws, to_ws):
         event = {
                     'type': 'GATE',
                     'args': {
-                        'success': user_id,
-                        'id': row is not None
+                        'success': row is not None,
+                        'id': user_id
                     }
                 }
         tasks = [to_ws.put(json.dumps(event))]
-        if row is not None:
-            tasks.append(from_ws.put(b'\x02\x07\x03\x01\x01'))
+        #if row is not None:
+        #    tasks.append(from_ws.put(b'\x02\x07\x03\x01\x01'))
 
         await asyncio.wait(tasks)
 
@@ -65,9 +67,11 @@ def embeddedhandler(from_ws, to_ws):
     }
     async def handler(reader, writer):
         loop = asyncio.get_event_loop()
+        print("new connection")
         async def command_writer():
             while True:
                 data = await from_ws.get()
+                print(f'sending {data.hex()}')
                 writer.write(data)
                 await writer.drain()
                 from_ws.task_done()
@@ -90,10 +94,12 @@ def embeddedhandler(from_ws, to_ws):
                     print(f'warning unknown function code: {route.hex()}')
                 else:
                     await router[route](*args)
-        except:
-            pass
+        except Exception as e:
+            print(f"exception {e.args} {type(e).__name__}")
         finally:
+            print("end connection")
             await from_ws.join()
             writetask.cancel()
             writer.close()
+            print("closed connection")
     return handler
