@@ -69,6 +69,7 @@
 
 body {
   background-color: green;
+  color: white;
 }
 
 .btn-popup {
@@ -76,11 +77,15 @@ body {
 }
 
 .parking-map {
-  height: 400px;
+  height: 600px;
 }
 
 .header {
   padding-left: 0;
   padding-right: 0;
+}
+
+.logo {
+  padding: 0px 0px;
 }
 

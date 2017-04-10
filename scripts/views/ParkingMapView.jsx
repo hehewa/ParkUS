@@ -13,7 +13,7 @@ var reservedIcon = new L.Icon.Default();
 reservedIcon.options.iconUrl = 'marker-orange.png';
 var availableIcon = new L.Icon.Default()
 
-var b = [[51.5045, -0.089], [51.5055, -0.091]]
+var b = [[51.5045, -0.0887], [51.5055, -0.0913]]
 
 class ParkingMap extends React.Component {
   constructor() {
@@ -45,7 +45,7 @@ class ParkingMap extends React.Component {
     return(
       <Map center={[51.505, -0.09]} zoom={19} className="parking-map" maxBounds={b}>
         <ImageOverlay
-          url='/static/img/parking-map-test.png'
+          url='/static/img/carte.png'
           bounds={b}
         />
         {this.renderMarkers()}
