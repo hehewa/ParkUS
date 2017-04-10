@@ -36,7 +36,16 @@
     </div>
     <div class="container-fluid">
       {% for key, value in user.info.items() %}
-        {{key}} = {{value}} <br/>
+        {% if key == "ID_User" or "ID" not in key %}
+          <div class="account-info">
+            <div class="account-info-label">
+              {{key}}:
+            </div>
+            <div class="account-info-value">
+              {{value}}
+            </div>
+          </div>
+        {% endif %}
       {% endfor %}
     </div>
     <script src="/static/bower_components/jquery/dist/jquery.min.js"></script>
