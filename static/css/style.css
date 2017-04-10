@@ -101,3 +101,7 @@ body {
   font-weight: bold;
   padding-top: 10px;
 }
+
+.login-error {
+  margin-top: 15px;
+}
