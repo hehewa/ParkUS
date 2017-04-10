@@ -17,6 +17,7 @@ const Actions = {
   },
   onReservation(key, reserved) {
     socket.send(JSON.stringify({type:'RESERVATION', args:{key: key, reserved: reserved}}));
+    document.location = '/logout';
   },
   onParkingSpotUpdate(position, available) {
     Socket.emit('FAKE_UPDATE', {position: position, available: available, reserved: false});

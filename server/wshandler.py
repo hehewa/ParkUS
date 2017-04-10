@@ -43,7 +43,7 @@ async def wshandler(request):
                 )
             elif event["type"] == "RESERVATION":
                 key = event['args']['key']
-                if not parkings[key]['reserved']:
+                if parkings[key]['reserved'] != event['args']['reserved']:
                     parkings[key]['reserved'] = event['args']['reserved']
                     for ws in request.app['websockets']:
                         ws.send_str(
@@ -65,7 +65,8 @@ async def wshandler(request):
                                     }
                                 )
                             )
-                    request.app.loop.call_later(10, unreserve, key)
+                    if parkings[key]['reserved']:
+                        request.app.loop.call_later(20, unreserve, key)
 
                     module_id = key[:2]
                     keys = [ module_id + spot_id for spot_id in map(str, range(7,-1,-1)) ]
@@ -73,9 +74,8 @@ async def wshandler(request):
                     mask = bytes([
                         int(''.join([ '1' if key is not None and parkings[key]['reserved'] else '0' for key in keys ]), 2)
                     ])
-                    await asyncio.wait([request.app['to_mbed'].put(b'\x02' + bytes.fromhex(module_id) + b'\x01\x01' + mask),
-                        request.app['to_mbed'].put(b'\x02\x07\x03\x01\x01')
-                    ])
+                    await request.app['to_mbed'].put(b'\x02\x07\x03\x01\x01')
+                    await request.app['to_mbed'].put(b'\x02' + bytes.fromhex(module_id) + b'\x01\x01' + mask)
         else:
             break
 

@@ -96,6 +96,7 @@ def embeddedhandler(from_ws, to_ws):
                     await router[route](*args)
         except Exception as e:
             print(f"exception {e.args} {type(e).__name__}")
+            print(f"{e}")
         finally:
             print("end connection")
             await from_ws.join()
