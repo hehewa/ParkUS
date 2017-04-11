@@ -12,16 +12,24 @@ socket.addEventListener('message', function (event) {
     MapActions.updateParkingSpots(parsed["args"]);
   } else if(parsed["type"] == "GATE") {
     if(window.location.pathname == "/login") {
-      if(parsed["args"]["success"]) {
+      if(!parsed["args"]["success"]) {
+        console.log("fail : " + parsed["args"]["id"]);
+        var messageBox = $(".login-error");
+        var message = $(".login-message");
+        message.html("Carte non reconnue. <a href='/signup'>Abonnez-vous!</a>");
+        messageBox.css("display", "block");
+      } else if(parsed["args"]["full"]) {
+        console.log("fail : " + parsed["args"]["id"]);
+        var messageBox = $(".login-error");
+        var message = $(".login-message");
+        message.html("Stationnement &agrave; pleine capacit&eacute;.");
+        messageBox.css("display", "block");
+      } else if(parsed["args"]["success"]) {
         console.log("success : " + parsed["args"]["id"]);
         var form = $(".login-form");
         var inputField = $(".login-id");
         inputField.val(parsed["args"]["id"].toString());
         form.submit();
-      } else {
-        console.log("fail : " + parsed["args"]["id"]);
-        var message = $(".login-error");
-        message.css("display", "block");
       }
     }
   }

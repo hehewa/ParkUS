@@ -36,3 +36,4 @@ parkings = {
         'position': [51.50527, -0.09100], 'reserved': False, 'available': True
     }
 }
+users = dict()

@@ -2,7 +2,7 @@ import asyncio
 from db import get_db
 from struct import unpack
 import json
-from parkinglot import parkings
+from parkinglot import parkings, users
 
 
 async def cleanup_background_tasks(app):
@@ -19,6 +19,9 @@ def setup(app, from_ws, to_ws, loop):
 def embeddedhandler(from_ws, to_ws):
     async def connected(module_id):
         print(f'connected {module_id.hex()}')
+        if module_id == b'\x03':
+            left, right = count_spots()
+            await update_spots(left, right)
     async def disconnected(module_id):
         print(f'disconnected {module_id.hex()}')
     async def parkinglotstatus(module_id, parkingmask):
@@ -38,6 +41,8 @@ def embeddedhandler(from_ws, to_ws):
 
         if len(event['args']) > 0:
             await to_ws.put(json.dumps(event))
+            left, right = count_spots()
+            await update_spots(left, right)
 
     async def gaterequest(module_id, card_id):
         print(f'gate {module_id.hex()} {card_id.hex()}')
@@ -50,14 +55,28 @@ def embeddedhandler(from_ws, to_ws):
                     'type': 'GATE',
                     'args': {
                         'success': row is not None,
+                        'full': sum(count_spots()) == 0,
                         'id': user_id
                     }
                 }
-        tasks = [to_ws.put(json.dumps(event))]
-        #if row is not None:
-        #    tasks.append(from_ws.put(b'\x02\x07\x03\x01\x01'))
+        tasks = []
+        if card_id.hex() in users and users[card_id.hex()]:
+            users[card_id.hex()] = False
+            tasks.append(from_ws.put(b'\x02\x07\x03\x01\x01'))
+        else:
+            if not event['args']['full'] and event['args']['success']:
+                users[card_id.hex()] = True
+            tasks.append(to_ws.put(json.dumps(event)))
 
         await asyncio.wait(tasks)
+
+    async def update_spots(left, right):
+        await from_ws.put(b'\x02\x03\x04\x04' + bytes([left + 0x30]) + b'\xff\xff' + bytes([right + 0x30]))
+
+    def count_spots():
+        left = sum(value['available'] and key[:2] == '01' for key, value in parkings.items())
+        right = sum(value['available'] and key[:2] == '02' for key, value in parkings.items())
+        return left, right
 
     router = {
         b'\x00': connected,
