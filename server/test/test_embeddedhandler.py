@@ -3,6 +3,7 @@ import unittest
 import asyncio
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from embeddedhandler import embeddedhandler
+from parkinglot import users
 
 class MockedWriter():
 
@@ -35,23 +36,24 @@ class MockedReader():
 
 class TestMbedHandler(unittest.TestCase):
 
-    def test_gaterequest_success(self):
+    def test_open_gaterequest(self):
         reader = MockedReader(b'\x02\xaa\x02\x04\x00\x00\x00\x7b')
         writer = MockedWriter()
+        users['0000007b'] = True
         asyncio.set_event_loop(asyncio.new_event_loop())
         loop = asyncio.get_event_loop()
         loop.run_until_complete(embeddedhandler(asyncio.Queue(), asyncio.Queue())(reader, writer))
         loop.close()
         self.assertEqual(writer.result, b'\x02\x07\x03\x01\x01')
 
-    def test_gaterequest_fail(self):
-        reader = MockedReader(b'\x02\xaa\x02\x04\xaa\xaa\xaa\x7b')
+    def test_7segments(self):
+        reader = MockedReader(b'\x02\x01\x00\x01\x03' + b'\x02\x02\x00\x01\x02')
         writer = MockedWriter()
         asyncio.set_event_loop(asyncio.new_event_loop())
         loop = asyncio.get_event_loop()
         loop.run_until_complete(embeddedhandler(asyncio.Queue(), asyncio.Queue())(reader, writer))
         loop.close()
-        self.assertEqual(writer.result, b"")
+        self.assertEqual(writer.result, b'\x02\x03\x04\x044\xff\xff6' + b'\x02\x03\x04\x044\xff\xff5')
 
 
 unittest.main()
