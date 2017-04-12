@@ -1,7 +1,7 @@
 import asyncio
 from aiohttp import web
 import json
-from parkinglot import parkings
+from parkinglot import parkings, users
 
 
 async def start_background_tasks(app):
@@ -67,6 +67,7 @@ async def wshandler(request):
                             )
                     if parkings[key]['reserved']:
                         request.app.loop.call_later(20, unreserve, key)
+                        users[hex(int(request.app['current_user'].id))[2:]] = True
 
                     module_id = key[:2]
                     keys = [ module_id + spot_id for spot_id in map(str, range(7,-1,-1)) ]

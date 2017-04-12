@@ -64,8 +64,6 @@ def embeddedhandler(from_ws, to_ws):
             users[card_id.hex()] = False
             tasks.append(from_ws.put(b'\x02\x07\x03\x01\x01'))
         else:
-            if not event['args']['full'] and event['args']['success']:
-                users[card_id.hex()] = True
             tasks.append(to_ws.put(json.dumps(event)))
 
         await asyncio.wait(tasks)
