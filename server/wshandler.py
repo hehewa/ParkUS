@@ -54,6 +54,7 @@ async def wshandler(request):
                                 }
                             )
                         )
+
                     def unreserve(key):
                         parkings[key]['reserved'] = False
                         for ws in request.app['websockets']:
@@ -67,16 +68,24 @@ async def wshandler(request):
                             )
                     if parkings[key]['reserved']:
                         request.app.loop.call_later(20, unreserve, key)
-                        users[hex(int(request.app['current_user'].id))[2:]] = True
+                        card_id = hex(int(request.app['current_user'].id))[2:]
+                        users[card_id] = True
 
                     module_id = key[:2]
-                    keys = [ module_id + spot_id for spot_id in map(str, range(7,-1,-1)) ]
-                    keys = [ key if key in parkings else None for key in keys ]
-                    mask = bytes([
-                        int(''.join([ '1' if key is not None and parkings[key]['reserved'] else '0' for key in keys ]), 2)
-                    ])
+                    keys = [
+                        module_id + spot_id
+                        for spot_id in map(str, range(7, -1, -1))
+                    ]
+                    keys = [key if key in parkings else None for key in keys]
+                    bits = int(''.join([
+                        ('1' if key is not None and parkings[key]['reserved']
+                            else '0' for key in keys)
+                    ]), 2)
+                    mask = bytes([bits])
                     await request.app['to_mbed'].put(b'\x02\x07\x03\x01\x01')
-                    await request.app['to_mbed'].put(b'\x02' + bytes.fromhex(module_id) + b'\x01\x01' + mask)
+                    await request.app['to_mbed'].put(
+                        b'\x02' + bytes.fromhex(module_id) + b'\x01\x01' + mask
+                    )
         else:
             break
 

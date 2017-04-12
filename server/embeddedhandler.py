@@ -69,11 +69,22 @@ def embeddedhandler(from_ws, to_ws):
         await asyncio.wait(tasks)
 
     async def update_spots(left, right):
-        await from_ws.put(b'\x02\x03\x04\x04' + bytes([left + 0x30]) + b'\xff\xff' + bytes([right + 0x30]))
+        await from_ws.put(
+            b'\x02\x03\x04\x04' +
+            bytes([left + 0x30]) +
+            b'\xff\xff' +
+            bytes([right + 0x30])
+        )
 
     def count_spots():
-        left = sum(value['available'] and key[:2] == '01' for key, value in parkings.items())
-        right = sum(value['available'] and key[:2] == '02' for key, value in parkings.items())
+        left = sum(
+            value['available'] and key[:2] == '01'
+            for key, value in parkings.items()
+        )
+        right = sum(
+            value['available'] and key[:2] == '02'
+            for key, value in parkings.items()
+        )
         return left, right
 
     router = {
